@@ -23,6 +23,7 @@ import android.util.Log;
 
 import org.thoughtcrime.redphone.audio.AudioException;
 import org.thoughtcrime.redphone.audio.CallAudioManager;
+import org.thoughtcrime.redphone.datagraham.ActiveMQDataGrahamSocket;
 import org.thoughtcrime.redphone.datagraham.CustomSocket;
 import org.thoughtcrime.redphone.datagraham.CustomToDatagramPipe;
 import org.thoughtcrime.redphone.datagraham.DatagramToCustomPipe;
@@ -68,6 +69,7 @@ public abstract class CallManager extends Thread {
   protected SecureRtpSocket secureSocket;
   protected SignalingSocket signalingSocket;
 
+  protected DataGrahamSocket dataGrahamSocket;
   protected CustomToDatagramPipe customToDatagram;
   protected DatagramToCustomPipe datagramToCustom;
 
@@ -100,7 +102,7 @@ public abstract class CallManager extends Thread {
 //        sasInfo = zrtpSocket.getSasInfo();
 //        callStateListener.notifyCallConnected(sasInfo);
 //      }
-      DataGrahamSocket dataGrahamSocket = new DataGrahamSocket();
+      dataGrahamSocket = new ActiveMQDataGrahamSocket();
       CustomSocket customSocket = new CustomSocket(dataGrahamSocket);
       customToDatagram = new CustomToDatagramPipe(
               zrtpSocket.getDatagramSocket(), customSocket,
@@ -110,6 +112,7 @@ public abstract class CallManager extends Thread {
       customToDatagram.start();
       datagramToCustom.start();
 
+      customSocket.initiateCall();
 //      if (!terminated) {
 //        Log.d(TAG, "Finished handshake, calling run() on CallAudioManager...");
 //        callConnected = true;
@@ -149,6 +152,9 @@ public abstract class CallManager extends Thread {
 
     if (datagramToCustom != null)
       datagramToCustom.stop();
+
+    if (dataGrahamSocket != null)
+      dataGrahamSocket.close();
   }
 
   public SessionDescriptor getSessionDescriptor() {

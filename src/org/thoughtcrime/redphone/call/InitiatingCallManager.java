@@ -85,8 +85,6 @@ public class InitiatingCallManager extends CallManager {
 
       secureSocket  = new SecureRtpSocket(new RtpSocket(localPort, remoteAddress));
 
-      zrtpSocket    = new ZRTPInitiatorSocket(context, secureSocket, zid, remoteNumber);
-
       processSignals();
 
       callStateListener.notifyWaitingForResponder();

@@ -93,7 +93,6 @@ public class ResponderCallManager extends CallManager {
                                                               sessionDescriptor.relayPort);
 
       secureSocket  = new SecureRtpSocket(new RtpSocket(localPort, remoteAddress));
-      zrtpSocket    = new ZRTPResponderSocket(context, secureSocket, zid, remoteNumber, sessionDescriptor.version <= 0);
 
       callStateListener.notifyConnectingtoInitiator();
 

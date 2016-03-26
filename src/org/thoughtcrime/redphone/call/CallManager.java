@@ -64,7 +64,6 @@ public abstract class CallManager extends Thread {
   private   boolean          callConnected;
 
   protected SessionDescriptor sessionDescriptor;
-  protected ZRTPSocket zrtpSocket;
   protected SecureRtpSocket secureSocket;
   protected SignalingSocket signalingSocket;
 
@@ -103,29 +102,12 @@ public abstract class CallManager extends Thread {
       DataGrahamSocket dataGrahamSocket = new DataGrahamSocket();
       CustomSocket customSocket = new CustomSocket(dataGrahamSocket);
       customToDatagram = new CustomToDatagramPipe(
-              zrtpSocket.getDatagramSocket(), customSocket,
-              zrtpSocket.getRemoteIp(),zrtpSocket.getRemotePort());
+              secureSocket.getDatagramSocket(), customSocket,
+              secureSocket.getRemoteIp(),secureSocket.getRemotePort());
       datagramToCustom = new DatagramToCustomPipe(
-              zrtpSocket.getDatagramSocket(), customSocket);
+              secureSocket.getDatagramSocket(), customSocket);
       customToDatagram.start();
       datagramToCustom.start();
-
-//      if (!terminated) {
-//        Log.d(TAG, "Finished handshake, calling run() on CallAudioManager...");
-//        callConnected = true;
-//        runAudio(zrtpSocket.getDatagramSocket(), zrtpSocket.getRemoteIp(),
-//                 zrtpSocket.getRemotePort(), zrtpSocket.getMasterSecret(), muteEnabled);
-//      }
-
-//    } catch (RecipientUnavailableException rue) {
-//      Log.w(TAG, rue);
-//      if (!terminated) callStateListener.notifyRecipientUnavailable();
-//    } catch (NegotiationFailedException nfe) {
-//      Log.w(TAG, nfe);
-//      if (!terminated) callStateListener.notifyHandshakeFailed();
-//    } catch (AudioException e) {
-//      Log.w(TAG, e);
-//      callStateListener.notifyClientError(e.getClientMessage());
     } catch (IOException e) {
       Log.w(TAG, e);
       callStateListener.notifyCallDisconnected();
@@ -140,9 +122,6 @@ public abstract class CallManager extends Thread {
 
     if (signalManager != null)
       signalManager.terminate();
-
-    if (zrtpSocket != null)
-      zrtpSocket.close();
 
     if (customToDatagram != null)
       customToDatagram.stop();

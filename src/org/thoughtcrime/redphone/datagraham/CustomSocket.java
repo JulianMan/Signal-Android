@@ -1,49 +1,89 @@
 package org.thoughtcrime.redphone.datagraham;
 
-import org.thoughtcrime.redphone.datagraham.DataGrahamSocket;
+import java.nio.ByteBuffer;
+import org.thoughtcrime.redphone.network.RtpPacket;
 
-/**
- * Created by Julian on 3/20/2016.
- */
 public class CustomSocket {
     DataGrahamSocket dataGrahamSocket;
+    final Object lock = new Object();
+    RtpPacket latestData;
+
+    Callback initiatorCallback = Callback.emptyCallback();
+    Callback respondCallback = Callback.emptyCallback();
 
     public CustomSocket(DataGrahamSocket socket) {
         dataGrahamSocket = socket;
+        (new Thread() {
+            @Override
+            public void run() {
+                listen();
+            }
+        }).start();
     }
 
-    public <T> void send(T packet) {
-        // encode to bytes using protobuff and send
+    public void initiateCall() {
+        byte[] data = ByteBuffer.allocate(2).putShort((short) MessageTypes.INITIATE.ordinal()).array();
+        dataGrahamSocket.send(data);
     }
 
-    /**
-     * Pass in a packet to fill up with data
-     * @param <T> Type of the packet desired
-     * @return
-     */
-    public <T> T receive(Class<T> classReference) {
-        boolean satisfied = false;
-        T packet = null;
-        while (!satisfied) {
+    private void listen() {
+        while (true) {
             byte[] data = dataGrahamSocket.receive();
-            Object parsed = fromBytes(data);
-
-            // TODO dschwarz test this code
-            if (classReference.isAssignableFrom(parsed.getClass())) {
-                satisfied = true;
-                packet = (T) parsed;
+            handleNewMessage(data);
+//            Logger.getLogger(getClass().getName()).log(Level.INFO, "Message received!");
+            synchronized (lock) {
+                lock.notifyAll();
             }
         }
-        return packet;
+    }
+
+    public void send(byte[] rawData) {
+        send(new RtpPacket(rawData, rawData.length));
+    }
+
+    public void send(RtpPacket packet) {
+        byte[] data = packet.getPacket();
+        short messageType = (short) MessageTypes.PACKET.ordinal();
+        byte[] finalMessage = ByteBuffer.allocate(2 + packet.getPacketLength())
+                .putShort(messageType)
+                .put(data)
+                .array();
+
+        dataGrahamSocket.send(finalMessage);
+    }
+
+    public byte[] receiveBytes() throws InterruptedException {
+        return this.receive().getPayload();
+    }
+
+    public RtpPacket receive() throws InterruptedException {
+        synchronized (lock) {
+            lock.wait();
+        }
+        return latestData;
     }
 
     public void setTimeout(int timeoutMillis) {
         // not implemented
     }
 
-    private Object fromBytes(byte[]  packet) {
-        return null; // not implemented
+    private void handleNewMessage(byte[]  packet) {
+        ByteBuffer buffer = ByteBuffer.wrap(packet);
+        MessageTypes type = MessageTypes.values()[buffer.getShort()];
+        if (type == MessageTypes.PACKET) {
+            int packetLength = buffer.capacity() - 2;
+            byte[] data = new byte[packetLength];
+            buffer.get(data);
+            latestData = new RtpPacket(data, packetLength);
+            synchronized (lock) {
+                lock.notify(); // notify a single receive method that a packet has arrived
+            }
+        } else if (type == MessageTypes.INITIATE){
+            initiatorCallback.doSomething();
+        } else if (type == MessageTypes.RESPOND) {
+            respondCallback.doSomething();
+        } else {
+            new Exception("Unknown message type " + type.toString()).printStackTrace();
+        }
     }
-
-
 }

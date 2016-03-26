@@ -16,4 +16,8 @@ public class DataGrahamSocket {
         }
         return null;
     }
+
+    public void close()
+    {
+    }
 }

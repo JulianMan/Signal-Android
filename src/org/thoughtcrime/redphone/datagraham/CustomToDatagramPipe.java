@@ -35,8 +35,8 @@ public class CustomToDatagramPipe extends SocketPipe {
         this.remotePort = remotePort;
     }
     @Override
-    protected byte[] receive() throws IOException {
-        return customSocket.receive(RtpPacket.class).getPacket();
+    protected byte[] receive() throws IOException, InterruptedException {
+        return customSocket.receive().getPacket();
     }
 
     @Override

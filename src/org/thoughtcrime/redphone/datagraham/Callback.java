@@ -5,10 +5,6 @@ package org.thoughtcrime.redphone.datagraham;
  */
 public interface Callback {
     abstract void doSomething();
-
-    static Callback emptyCallback() {
-        return new EmptyCallback();
-    }
 }
 
 class EmptyCallback implements Callback {

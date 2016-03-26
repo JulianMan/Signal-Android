@@ -8,8 +8,8 @@ public class CustomSocket {
     final Object lock = new Object();
     RtpPacket latestData;
 
-    Callback initiatorCallback = Callback.emptyCallback();
-    Callback respondCallback = Callback.emptyCallback();
+    Callback initiatorCallback = new EmptyCallback();
+    Callback respondCallback = new EmptyCallback();
 
     public CustomSocket(DataGrahamSocket socket) {
         dataGrahamSocket = socket;

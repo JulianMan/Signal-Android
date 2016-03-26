@@ -17,8 +17,9 @@ public abstract class SocketPipe {
                 {
                     try {
                         byte[] data = receive();
+                        System.out.print("HEY HEY ");
                         send(data);
-                    } catch (IOException e) {
+                    } catch (IOException | InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -31,7 +32,7 @@ public abstract class SocketPipe {
         running = false;
     }
 
-    protected abstract byte[] receive() throws IOException;
+    protected abstract byte[] receive() throws IOException, InterruptedException;
 
     protected abstract void send(byte[] data) throws IOException;
 }

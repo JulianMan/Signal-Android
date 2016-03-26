@@ -1,25 +1,21 @@
 package org.thoughtcrime.redphone.datagraham;
 
-import javax.jms.BytesMessage;
-import javax.jms.Connection;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import org.apache.activemq.ActiveMQConnectionFactory;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import javax.jms.JMSException;
-import javax.jms.Topic;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by Julian on 3/22/2016.
  */
-public class ActiveMQDataGrahamSocket extends DataGrahamSocket {
+public class ActiveMQDataGrahamSocket implements DataGrahamSocket {
 
-    protected Connection connection;
-    protected Session session;
-    protected MessageConsumer consumer;
-    protected MessageProducer producer;
+    protected MqttClient client;
+    protected BlockingQueue<byte[]> receivedMessages = new LinkedBlockingQueue<>();
     protected String brokerUrl;
     protected static final String PHONE_TO_DONGLE_TOPIC = "phone_to_dongle";
     protected static final String DONGLE_TO_PHONE_TOPIC = "dongle_to_phone";
@@ -28,33 +24,42 @@ public class ActiveMQDataGrahamSocket extends DataGrahamSocket {
     public ActiveMQDataGrahamSocket(){
         super();
 
-        brokerUrl = "tcp://localhost:61616";
+        brokerUrl = "tcp://localhost:1883";
         setupActiveMQ();
     }
 
     protected void setupActiveMQ(){
         try {
-            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
-            connection = connectionFactory.createConnection();
-            connection.start();
-            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            Topic phoneToDongleTopic = session.createTopic(PHONE_TO_DONGLE_TOPIC);
-            Topic dongleToPhoneTopic = session.createTopic(DONGLE_TO_PHONE_TOPIC);
-            consumer = session.createConsumer(dongleToPhoneTopic);
-            producer = session.createProducer(phoneToDongleTopic);
-        } catch(JMSException e){
+            client = new MqttClient(brokerUrl,"ImaPhone");
+            client.connect();
+            client.subscribe(DONGLE_TO_PHONE_TOPIC);
+            client.setCallback(new MqttCallback() {
+                @Override
+                public void connectionLost(Throwable cause) {
+                    //be sad
+                }
+
+                @Override
+                public void messageArrived(String topic, MqttMessage message) throws Exception {
+                    receivedMessages.offer(message.getPayload());
+                }
+
+                @Override
+                public void deliveryComplete(IMqttDeliveryToken token) {
+                    //no-op
+                }
+            });
+        }
+        catch(MqttException e){
             e.printStackTrace();
         }
     }
 
     @Override
     public void send(byte[] data) {
-
         try {
-            BytesMessage msg = session.createBytesMessage();
-            msg.writeBytes(data);
-            producer.send(msg);
-        } catch (JMSException e) {
+            client.publish(PHONE_TO_DONGLE_TOPIC, data, 2, false);
+        } catch (MqttException e) {
             e.printStackTrace();
         }
     }
@@ -62,13 +67,8 @@ public class ActiveMQDataGrahamSocket extends DataGrahamSocket {
     @Override
     public byte[] receive() {
         try {
-            Message message = consumer.receive();
-            if(message instanceof BytesMessage){
-                byte[] bytes = new byte[(int)((BytesMessage) message).getBodyLength()];
-                ((BytesMessage) message).readBytes(bytes);
-                return bytes;
-            }
-        } catch (JMSException e) {
+            return receivedMessages.take();
+        } catch (InterruptedException e){
             e.printStackTrace();
         }
         return null;
@@ -77,11 +77,9 @@ public class ActiveMQDataGrahamSocket extends DataGrahamSocket {
     @Override
     public void close(){
         try {
-            consumer.close();
-            producer.close();
-            session.close();
-            connection.close();
-        } catch(JMSException e){
+            client.disconnect();
+            client.close();
+        } catch(MqttException e){
             e.printStackTrace();
         }
     }

@@ -94,6 +94,7 @@ dependencies {
     compile 'com.h6ah4i.android.compat:mulsellistprefcompat:1.0.0'
     compile 'com.google.zxing:core:3.2.1'
     compile 'org.apache.activemq:activemq-core:5.7.0'
+    compile 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.0.2'
 }
 
 dependencyVerification {

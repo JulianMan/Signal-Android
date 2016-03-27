@@ -132,8 +132,6 @@ public abstract class CallManager extends Thread {
       customToDatagram.start();
       datagramToCustom.start();
 
-      customSocket.initiateCall();
-
     } catch (IOException e) {
       Log.w(TAG, e);
       callStateListener.notifyCallDisconnected();

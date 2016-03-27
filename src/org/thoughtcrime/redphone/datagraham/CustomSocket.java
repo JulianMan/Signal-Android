@@ -8,8 +8,9 @@ public class CustomSocket {
     final Object lock = new Object();
     RtpPacket latestData;
 
-    Callback initiatorCallback = new EmptyCallback();
-    Callback respondCallback = new EmptyCallback();
+    public Callback initiatorCallback = new EmptyCallback();
+    public Callback respondCallback = new EmptyCallback();
+    public Callback callConnectedCallback = new EmptyCallback();
 
     public CustomSocket(DataGrahamSocket socket) {
         dataGrahamSocket = socket;
@@ -83,8 +84,10 @@ public class CustomSocket {
             initiatorCallback.doSomething();
         } else if (type == MessageTypes.RESPOND) {
             respondCallback.doSomething();
+        } else if (type == MessageTypes.CALL_CONNECTED) {
+
         } else {
-            new Exception("Unknown message type " + type.toString()).printStackTrace();
+                new Exception("Unknown message type " + type.toString()).printStackTrace();
         }
     }
 }

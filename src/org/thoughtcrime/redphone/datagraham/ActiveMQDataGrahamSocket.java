@@ -32,7 +32,7 @@ public class ActiveMQDataGrahamSocket implements DataGrahamSocket {
 
     protected void setupActiveMQ(){
         try {
-            client = new MqttClient(brokerUrl,"ImaPhone2", persistence);
+            client = new MqttClient(brokerUrl,"ImReallyAPhone", persistence);
             client.connect();
             client.subscribe(DONGLE_TO_PHONE_TOPIC);
             client.setCallback(new MqttCallback() {

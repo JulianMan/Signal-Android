@@ -6,6 +6,9 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.util.MissingResourceException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -24,13 +27,14 @@ public class ActiveMQDataGrahamSocket implements DataGrahamSocket {
     public ActiveMQDataGrahamSocket(){
         super();
 
-        brokerUrl = "tcp://localhost:1883";
+        brokerUrl = "tcp://192.168.0.167:1883";
         setupActiveMQ();
     }
 
     protected void setupActiveMQ(){
         try {
-            client = new MqttClient(brokerUrl,"ImaPhone");
+            SecureRandom random = new SecureRandom();
+            client = new MqttClient(brokerUrl, new BigInteger(130, random).toString(32));
             client.connect();
             client.subscribe(DONGLE_TO_PHONE_TOPIC);
             client.setCallback(new MqttCallback() {
@@ -51,6 +55,9 @@ public class ActiveMQDataGrahamSocket implements DataGrahamSocket {
             });
         }
         catch(MqttException e){
+            e.printStackTrace();
+        }
+        catch (MissingResourceException e) {
             e.printStackTrace();
         }
     }

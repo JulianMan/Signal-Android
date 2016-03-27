@@ -22,6 +22,7 @@ public class CustomSocket {
     }
 
     public void initiateCall() {
+        System.out.print("I'm initiating a call, dude");
         byte[] data = ByteBuffer.allocate(2).putShort((short) MessageTypes.INITIATE.ordinal()).array();
         dataGrahamSocket.send(data);
     }

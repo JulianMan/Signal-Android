@@ -23,8 +23,9 @@ public class ActiveMQDataGrahamSocket implements DataGrahamSocket {
     protected MqttClient client = null;
     protected BlockingQueue<byte[]> receivedMessages = new LinkedBlockingQueue<>();
 
-    protected static final String PHONE_TO_DONGLE_TOPIC = "phone_to_dongle";
-    protected static final String DONGLE_TO_PHONE_TOPIC = "dongle_to_phone";
+    protected static final int VERSION = 2;
+    protected static final String PHONE_TO_DONGLE_TOPIC = VERSION == 1 ? "phone_to_dongle" : "best_phone_to_dongle_topic";
+    protected static final String DONGLE_TO_PHONE_TOPIC = VERSION == 1 ? "dongle_to_phone" : "best_dongle_to_phone_topic";
     protected static final long TIMEOUT = 5000;
     protected String brokerUrl = "tcp://192.168.0.187:1883";
     protected MemoryPersistence persistence = new MemoryPersistence();

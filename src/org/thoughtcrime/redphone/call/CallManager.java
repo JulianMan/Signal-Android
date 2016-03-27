@@ -24,6 +24,7 @@ import android.util.Log;
 import org.thoughtcrime.redphone.audio.AudioException;
 import org.thoughtcrime.redphone.audio.CallAudioManager;
 import org.thoughtcrime.redphone.datagraham.ActiveMQDataGrahamSocket;
+import org.thoughtcrime.redphone.datagraham.Callback;
 import org.thoughtcrime.redphone.datagraham.CustomSocket;
 import org.thoughtcrime.redphone.datagraham.CustomToDatagramPipe;
 import org.thoughtcrime.redphone.datagraham.DatagramToCustomPipe;
@@ -72,6 +73,8 @@ public abstract class CallManager extends Thread {
   protected CustomToDatagramPipe customToDatagram;
   protected DatagramToCustomPipe datagramToCustom;
 
+  Object lock = null;
+
   public CallManager(Context context, CallStateListener callStateListener,
                      String remoteNumber, String threadName)
   {
@@ -80,6 +83,7 @@ public abstract class CallManager extends Thread {
     this.callStateListener = callStateListener;
     this.terminated        = false;
     this.context           = context;
+    this.lock = new Object();
   }
 
   @Override
@@ -103,6 +107,20 @@ public abstract class CallManager extends Thread {
 //      }
       dataGrahamSocket = new ActiveMQDataGrahamSocket();
       CustomSocket customSocket = new CustomSocket(dataGrahamSocket);
+      customSocket.callConnectedCallback = new Callback() {
+        @Override
+        public void doSomething() {
+          callStateListener.notifyCallConnected(new SASInfo("SASASASAS", true));
+          lock.notifyAll();
+        }
+      };
+      synchronized (lock) {
+        try {
+          lock.wait();
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
       customToDatagram = new CustomToDatagramPipe(
               secureSocket.getDatagramSocket(), customSocket,
               secureSocket.getRemoteIp(),secureSocket.getRemotePort());

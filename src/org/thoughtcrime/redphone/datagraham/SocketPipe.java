@@ -17,7 +17,7 @@ public abstract class SocketPipe {
                 {
                     try {
                         byte[] data = receive();
-                        System.out.print("HEY HEY ");
+//                        System.out.print("HEY HEY ");
                         send(data);
                     } catch (IOException | InterruptedException e) {
                         e.printStackTrace();

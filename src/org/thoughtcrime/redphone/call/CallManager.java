@@ -107,6 +107,7 @@ public abstract class CallManager extends Thread {
 //      }
       dataGrahamSocket = new ActiveMQDataGrahamSocket();
       CustomSocket customSocket = new CustomSocket(dataGrahamSocket);
+      preConnect(customSocket);
       customSocket.callConnectedCallback = new Callback() {
         @Override
         public void doSomething() {
@@ -133,6 +134,8 @@ public abstract class CallManager extends Thread {
       callStateListener.notifyCallDisconnected();
     }
   }
+
+  protected void preConnect(CustomSocket customSocket) {}
 
   public void terminate() {
     this.terminated = true;

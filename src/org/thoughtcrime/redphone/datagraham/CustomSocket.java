@@ -1,5 +1,7 @@
 package org.thoughtcrime.redphone.datagraham;
 
+import android.util.Log;
+
 import java.nio.ByteBuffer;
 import org.thoughtcrime.redphone.network.RtpPacket;
 
@@ -23,8 +25,24 @@ public class CustomSocket {
     }
 
     public void initiateCall() {
-        System.out.print("I'm initiating a call, dude");
         byte[] data = ByteBuffer.allocate(2).putShort((short) MessageTypes.INITIATE.ordinal()).array();
+        dataGrahamSocket.send(data);
+    }
+
+    public void respondCall() {
+        byte[] data = ByteBuffer.allocate(2).putShort((short) MessageTypes.RESPOND.ordinal()).array();
+        dataGrahamSocket.send(data);
+    }
+
+    // notify the phone that the call has been connected
+    public void callConnected(String sasText) {
+        byte[] text = sasText.getBytes();
+        byte[] data = ByteBuffer.allocate(2 + text.length)
+                .putShort((short) MessageTypes.CALL_CONNECTED.ordinal())
+                .put(text)
+                .array();
+
+        Log.d("Tag", "Call connected");
         dataGrahamSocket.send(data);
     }
 

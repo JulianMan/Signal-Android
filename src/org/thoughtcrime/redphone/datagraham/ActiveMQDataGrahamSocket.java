@@ -20,8 +20,8 @@ public class ActiveMQDataGrahamSocket implements DataGrahamSocket {
     protected MqttClient client;
     protected BlockingQueue<byte[]> receivedMessages = new LinkedBlockingQueue<>();
     protected String brokerUrl;
-    protected static final String PHONE_TO_DONGLE_TOPIC = "phone_to_dongle";
-    protected static final String DONGLE_TO_PHONE_TOPIC = "dongle_to_phone";
+    protected static final String PHONE_TO_DONGLE_TOPIC = "phone_to_dongle1";
+    protected static final String DONGLE_TO_PHONE_TOPIC = "dongle_to_phone1";
     protected static final long TIMEOUT = 5000;
 
     public ActiveMQDataGrahamSocket(){
@@ -84,8 +84,10 @@ public class ActiveMQDataGrahamSocket implements DataGrahamSocket {
     @Override
     public void close(){
         try {
-            client.disconnect();
-            client.close();
+            if (client != null) {
+                client.disconnect();
+                client.close();
+            }
         } catch(MqttException e){
             e.printStackTrace();
         }

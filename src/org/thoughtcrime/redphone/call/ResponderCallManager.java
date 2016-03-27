@@ -25,6 +25,7 @@ import org.thoughtcrime.redphone.audio.CallAudioManager;
 import org.thoughtcrime.redphone.crypto.SecureRtpSocket;
 import org.thoughtcrime.redphone.crypto.zrtp.MasterSecret;
 import org.thoughtcrime.redphone.crypto.zrtp.ZRTPResponderSocket;
+import org.thoughtcrime.redphone.datagraham.CustomSocket;
 import org.thoughtcrime.redphone.network.RtpSocket;
 import org.thoughtcrime.redphone.signaling.LoginFailedException;
 import org.thoughtcrime.redphone.signaling.NetworkConnector;
@@ -116,6 +117,10 @@ public class ResponderCallManager extends CallManager {
     }
   }
 
+  @Override
+  protected void preConnect(CustomSocket customSocket) {
+    customSocket.respondCall();
+  }
   public synchronized void answer(boolean answer) {
     this.answer = (answer ? 1 : 2);
     notifyAll();

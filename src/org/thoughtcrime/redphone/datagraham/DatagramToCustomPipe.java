@@ -3,6 +3,7 @@ package org.thoughtcrime.redphone.datagraham;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.nio.ByteBuffer;
 
 /**
  * Created by Julian on 3/20/2016.
@@ -19,9 +20,11 @@ public class DatagramToCustomPipe extends SocketPipe {
 
     @Override
     protected byte[] receive() throws IOException{
-        DatagramPacket datagramPacket = new DatagramPacket(new byte[1000],1000);
+        DatagramPacket datagramPacket = new DatagramPacket(new byte[5000],5000);
         datagramSocket.receive(datagramPacket);
-        return datagramPacket.getData();
+        return ByteBuffer.allocate(datagramPacket.getLength())
+                .put(datagramPacket.getData(), 0, datagramPacket.getLength())
+                .array();
     }
 
     @Override

@@ -103,7 +103,7 @@ public class CustomSocket {
         } else if (type == MessageTypes.RESPOND) {
             respondCallback.doSomething();
         } else if (type == MessageTypes.CALL_CONNECTED) {
-
+            callConnectedCallback.doSomething();
         } else {
                 new Exception("Unknown message type " + type.toString()).printStackTrace();
         }

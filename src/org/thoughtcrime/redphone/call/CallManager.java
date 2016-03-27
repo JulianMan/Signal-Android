@@ -117,13 +117,6 @@ public abstract class CallManager extends Thread {
           }
         }
       };
-      synchronized (lock) {
-        try {
-          lock.wait();
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-      }
       customToDatagram = new CustomToDatagramPipe(
               secureSocket.getDatagramSocket(), customSocket,
               secureSocket.getRemoteIp(),secureSocket.getRemotePort());
@@ -131,6 +124,14 @@ public abstract class CallManager extends Thread {
               secureSocket.getDatagramSocket(), customSocket);
       customToDatagram.start();
       datagramToCustom.start();
+
+      synchronized (lock) {
+        try {
+          lock.wait();
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
 
     } catch (IOException e) {
       Log.w(TAG, e);

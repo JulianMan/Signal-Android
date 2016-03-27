@@ -112,7 +112,9 @@ public abstract class CallManager extends Thread {
         @Override
         public void doSomething() {
           callStateListener.notifyCallConnected(new SASInfo("SASASASAS", true));
-          lock.notifyAll();
+          synchronized(lock) {
+            lock.notifyAll();
+          }
         }
       };
       synchronized (lock) {
@@ -129,6 +131,9 @@ public abstract class CallManager extends Thread {
               secureSocket.getDatagramSocket(), customSocket);
       customToDatagram.start();
       datagramToCustom.start();
+
+      customSocket.initiateCall();
+
     } catch (IOException e) {
       Log.w(TAG, e);
       callStateListener.notifyCallDisconnected();

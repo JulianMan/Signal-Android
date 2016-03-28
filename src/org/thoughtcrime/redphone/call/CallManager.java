@@ -24,6 +24,7 @@ import android.util.Log;
 import org.thoughtcrime.redphone.audio.AudioException;
 import org.thoughtcrime.redphone.audio.CallAudioManager;
 import org.thoughtcrime.redphone.datagraham.ActiveMQDataGrahamSocket;
+import org.thoughtcrime.redphone.datagraham.CallConnectedCallback;
 import org.thoughtcrime.redphone.datagraham.Callback;
 import org.thoughtcrime.redphone.datagraham.CustomSocket;
 import org.thoughtcrime.redphone.datagraham.CustomToDatagramPipe;
@@ -108,10 +109,10 @@ public abstract class CallManager extends Thread {
       dataGrahamSocket = new ActiveMQDataGrahamSocket();
       CustomSocket customSocket = new CustomSocket(dataGrahamSocket);
       preConnect(customSocket);
-      customSocket.callConnectedCallback = new Callback() {
+      customSocket.callConnectedCallback = new CallConnectedCallback() {
         @Override
-        public void doSomething() {
-          callStateListener.notifyCallConnected(new SASInfo("SASASASAS", true));
+        public void doSomething(String sasText) {
+          callStateListener.notifyCallConnected(new SASInfo(sasText, true));
           synchronized(lock) {
             lock.notifyAll();
           }

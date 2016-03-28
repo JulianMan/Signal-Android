@@ -2,6 +2,7 @@ package org.thoughtcrime.redphone.datagraham;
 
 import android.util.Log;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import org.thoughtcrime.redphone.network.RtpPacket;
 
@@ -12,7 +13,7 @@ public class CustomSocket {
 
     public Callback initiatorCallback = new EmptyCallback();
     public Callback respondCallback = new EmptyCallback();
-    public Callback callConnectedCallback = new EmptyCallback();
+    public CallConnectedCallback callConnectedCallback = new EmptyCallConnectedCallback();
 
     public CustomSocket(DataGrahamSocket socket) {
         dataGrahamSocket = socket;
@@ -36,7 +37,12 @@ public class CustomSocket {
 
     // notify the phone that the call has been connected
     public void callConnected(String sasText) {
-        byte[] text = sasText.getBytes();
+        byte[] text = new byte[0];
+        try {
+            text = sasText.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            Log.e("Tag", e.getLocalizedMessage());
+        }
         byte[] data = ByteBuffer.allocate(2 + text.length)
                 .putShort((short) MessageTypes.CALL_CONNECTED.ordinal())
                 .put(text)
@@ -103,7 +109,15 @@ public class CustomSocket {
         } else if (type == MessageTypes.RESPOND) {
             respondCallback.doSomething();
         } else if (type == MessageTypes.CALL_CONNECTED) {
-            callConnectedCallback.doSomething();
+            int packetLength = buffer.capacity() - 2;
+            byte[] data = new byte[packetLength];
+            buffer.get(data);
+            try {
+                String text = new String(data, "UTF-8");
+                callConnectedCallback.doSomething(text);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         } else {
                 new Exception("Unknown message type " + type.toString()).printStackTrace();
         }
